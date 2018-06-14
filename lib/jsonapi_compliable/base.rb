@@ -4,7 +4,6 @@ module JsonapiCompliable
   # This gets mixed in to a "context" class, such as a Rails controller.
   module Base
     extend ActiveSupport::Concern
-
     included do
       class << self
         attr_accessor :_jsonapi_compliable, :_sideload_whitelist
@@ -181,6 +180,19 @@ module JsonapiCompliable
     # @return [Scope] the configured scope
     def jsonapi_scope(scope, opts = {})
       jsonapi_resource.build_scope(scope, query, opts)
+    end
+
+    def find_resource(id)
+      model = jsonapi_scope(jsonapi_resource.model.where(id: id)).resolve.first
+      ResourceRequest.new(self, scope: model)
+    end
+
+    def find_resources(scope = jsonapi_resource.model.all, opts ={})
+      ResourceRequest.new(self, scope: jsonapi_scope(scope))
+    end
+
+    def build_resource(args)
+      ResourceRequest.new(self)
     end
 
     # @see Deserializer#initialize
