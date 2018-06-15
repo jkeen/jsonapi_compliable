@@ -93,6 +93,19 @@ module JsonapiCompliable
       validate.errors.empty? && @error.nil?
     end
 
+    def destroy
+      resource.transaction do
+        begin
+          @selection = @selection.destroy
+        rescue ActiveRecord::RecordNotFound => e
+
+        end
+        resource.before_commit(@selection, :destroy)
+      end
+
+      validate.errors.empty?
+    end
+
     def validate
       validation = JsonapiErrorable::Serializers::Validation.new(@selection, @context.deserialized_params.relationships)
     end
